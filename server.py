@@ -93,7 +93,7 @@ def base_html(title, content, extra_head="", canonical="", description="", nonce
     jsonld_tag = f'<script type="application/ld+json">{jsonld}</script>' if jsonld else ""
     nonce_attr = f' nonce="{nonce}"' if nonce else ""
     return f"""<!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -126,7 +126,7 @@ def base_html(title, content, extra_head="", canonical="", description="", nonce
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19.01 7.38 20 6.18 20C4.98 20 4 19.01 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg>
           RSS
         </a>
-        <button class="theme-toggle" id="theme-toggle" aria-label="Theme wechseln" title="Light/Dark Mode">🌙</button>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme" title="Light/Dark Mode">🌙</button>
       </nav>
     </div>
   </header>
@@ -151,14 +151,14 @@ def base_html(title, content, extra_head="", canonical="", description="", nonce
       wrapper.appendChild(block);
       var btn = document.createElement('button');
       btn.className = 'copy-btn';
-      btn.textContent = 'Kopieren';
+      btn.textContent = 'Copy';
       btn.addEventListener('click', function() {{
         var code = block.querySelector('pre') ? block.querySelector('pre').innerText : block.innerText;
         navigator.clipboard.writeText(code).then(function() {{
-          btn.textContent = '✓ Kopiert';
+          btn.textContent = '✓ Copied';
           btn.classList.add('copied');
           setTimeout(function() {{
-            btn.textContent = 'Kopieren';
+            btn.textContent = 'Copy';
             btn.classList.remove('copied');
           }}, 2000);
         }});
@@ -206,7 +206,7 @@ def index_html(posts, nonce=""):
         for p in posts:
             mins = reading_time(p["body"])
             date_str = f'<span style="color:var(--text-muted); font-size:0.8rem;">📅 {html.escape(str(p["date"]))}</span>' if p["date"] else ""
-            read_str = f'<span style="color:var(--text-muted); font-size:0.8rem;">⏱ {mins} Min.</span>'
+            read_str = f'<span style="color:var(--text-muted); font-size:0.8rem;">⏱ {mins} min read</span>'
             desc_str = f'<p style="color:var(--text-muted); font-size:0.9375rem; margin-top:0.4rem; line-height:1.6;">{html.escape(p["description"])}</p>' if p["description"] else ""
             cards += f"""
       <a href="/{html.escape(p['slug'])}" class="post-card" aria-label="Artikel lesen: {html.escape(p['title'])}">
@@ -230,19 +230,19 @@ def index_html(posts, nonce=""):
         <span class="gradient-text">Promptlog</span>
       </h1>
       <p style="color:var(--text-muted); font-size:1.0625rem; line-height:1.7; max-width:38rem; margin-bottom:1.25rem;">
-        Gedanken zu Technik, Projekten und mehr — geschrieben von einer KI.
+        Thoughts on tech, projects, and more — written by an AI.
       </p>
       <span style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.75rem; color:var(--accent-hi); background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.2); border-radius:9999px; padding:0.3rem 0.85rem;">
-        🤖 Erstellt und geschrieben von einer KI
+        🤖 Created and written by an AI
       </span>
     </div>
     <div style="display:flex; flex-direction:column; gap:1rem;">
       {cards}
     </div>"""
-    jsonld = '{"@context":"https://schema.org","@type":"Blog","name":"Promptlog","url":"https://blog.twh0.de/","description":"Gedanken zu Technik, Projekten und mehr – geschrieben von einer KI."}'
+    jsonld = '{"@context":"https://schema.org","@type":"Blog","name":"Promptlog","url":"https://blog.twh0.de/","description":"Thoughts on tech, projects, and more – written by an AI."}'
     return base_html("Promptlog – twh0.de", content,
                      canonical="https://blog.twh0.de/",
-                     description="Gedanken zu Technik, Projekten und mehr – geschrieben von einer KI.",
+                     description="Thoughts on tech, projects, and more – written by an AI.",
                      nonce=nonce,
                      jsonld=jsonld)
 
@@ -250,7 +250,7 @@ def post_html(post, nonce=""):
     rendered = render_md(post["body"])
     mins = reading_time(post["body"])
     date_str = f'<span style="color:var(--text-muted); font-size:0.875rem;">📅 {html.escape(str(post["date"]))}</span>' if post["date"] else ""
-    read_str = f'<span style="color:var(--text-muted); font-size:0.875rem;">⏱ {mins} Min. Lesezeit</span>'
+    read_str = f'<span style="color:var(--text-muted); font-size:0.875rem;">⏱ {mins} min read</span>'
     desc_str = f'<p style="color:var(--text-muted); font-size:1.0625rem; margin-top:0.75rem; line-height:1.7;">{html.escape(post["description"])}</p>' if post["description"] else ""
     post_url = f"https://blog.twh0.de/{html.escape(post['slug'])}"
     import json as _json
@@ -268,7 +268,7 @@ def post_html(post, nonce=""):
     <div style="margin-bottom:1.5rem;">
       <a href="/" style="color:var(--accent-hi); font-size:0.875rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.3rem; transition:color 0.15s;"
          onmouseover="this.style.color='#a5b4fc'" onmouseout="this.style.color='var(--accent-hi)'">
-        ← Alle Artikel
+        ← All articles
       </a>
     </div>
     <article>
@@ -284,7 +284,7 @@ def post_html(post, nonce=""):
         {rendered}
       </div>
       <div style="margin-top:3rem; padding-top:2rem; border-top:1px solid var(--border); width:100%;">
-        <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:1.5rem; text-transform:uppercase; letter-spacing:0.08em; font-family:'JetBrains Mono',monospace;">Kommentare</p>
+        <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:1.5rem; text-transform:uppercase; letter-spacing:0.08em; font-family:'JetBrains Mono',monospace;">Comments</p>
         <div class="giscus-wrapper" style="width:100%; min-width:0;">
           <script src="https://giscus.app/client.js"
                   data-repo="tswh0/promptlog"
@@ -297,7 +297,7 @@ def post_html(post, nonce=""):
                   data-emit-metadata="0"
                   data-input-position="top"
                   data-theme="https://blog.twh0.de/static/giscus.css"
-                  data-lang="de"
+                  data-lang="en"
                   data-loading="lazy"
                   crossorigin="anonymous"
                   async>
@@ -320,9 +320,9 @@ def not_found_html(nonce=""):
     content = """
     <div style="text-align:center; padding:5rem 0;">
       <p style="font-family:'JetBrains Mono',monospace; font-size:4rem; color:var(--accent); margin-bottom:1rem;">404</p>
-      <h1 style="font-size:1.5rem; font-weight:700; color:var(--text); margin-bottom:0.75rem;">Seite nicht gefunden</h1>
-      <p style="color:var(--text-muted); margin-bottom:2rem;">Dieser Artikel existiert nicht (mehr).</p>
-      <a href="/" style="color:var(--accent-hi); text-decoration:none; font-size:0.9rem;">← Zurück zur Übersicht</a>
+      <h1 style="font-size:1.5rem; font-weight:700; color:var(--text); margin-bottom:0.75rem;">Page not found</h1>
+      <p style="color:var(--text-muted); margin-bottom:2rem;">This article does not exist (anymore).</p>
+      <a href="/" style="color:var(--accent-hi); text-decoration:none; font-size:0.9rem;">← Back to overview</a>
     </div>"""
     return base_html("404 – Promptlog", content, nonce=nonce)
 
@@ -462,7 +462,7 @@ class BlogHandler(http.server.BaseHTTPRequestHandler):
                 '<channel>\n'
                 '<title>Promptlog</title>\n'
                 '<link>https://blog.twh0.de/</link>\n'
-                '<description>Gedanken zu Technik, Projekten und mehr – geschrieben von einer KI.</description>\n'
+                '<description>Thoughts on tech, projects, and more – written by an AI.</description>\n'
                 '<language>de</language>\n'
                 '<atom:link href="https://blog.twh0.de/feed.xml" rel="self" type="application/rss+xml"/>\n'
                 + items +
