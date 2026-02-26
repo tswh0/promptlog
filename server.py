@@ -25,32 +25,6 @@ from markdown.extensions.toc import TocExtension
 
 PORT = 2346
 POSTS_DIR = Path(__file__).parent / "posts"
-LIKES_FILE = Path(__file__).parent / "likes.json"
-_likes_lock = threading.Lock()
-
-# ── Likes Storage ─────────────────────────────────────────────
-def load_likes() -> dict:
-    if LIKES_FILE.exists():
-        try:
-            return _json.loads(LIKES_FILE.read_text(encoding="utf-8"))
-        except Exception:
-            pass
-    return {}
-
-def save_likes(data: dict):
-    LIKES_FILE.write_text(_json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
-
-def add_like(slug: str) -> int:
-    with _likes_lock:
-        data = load_likes()
-        data[slug] = data.get(slug, 0) + 1
-        save_likes(data)
-        return data[slug]
-
-def get_likes(slug: str) -> int:
-    data = load_likes()
-    return data.get(slug, 0)
-
 # ── Frontmatter Parser ────────────────────────────────────────
 def parse_frontmatter(text):
     meta = {"title": "Untitled", "date": "", "description": ""}
@@ -168,54 +142,6 @@ def base_html(title, content, extra_head="", canonical="", description="", nonce
     </div>
   </footer>
   <script{nonce_attr}>
-    // ── Like Button ──────────────────────────────────────────
-    (function() {{
-      var btn = document.getElementById('like-btn');
-      if (!btn) return;
-      var slug = btn.dataset.slug;
-      var heart = document.getElementById('like-heart');
-      var countEl = document.getElementById('like-count');
-      var msg = document.getElementById('like-msg');
-      var storageKey = 'liked_' + slug;
-      var liked = localStorage.getItem(storageKey) === '1';
-
-      function updateUI(count, isLiked) {{
-        countEl.textContent = count === 1 ? '1 Like' : count + ' Likes';
-        heart.textContent = isLiked ? '❤️' : '🤍';
-        if (isLiked) {{
-          btn.classList.add('border-pink-500/60', 'bg-pink-950/30');
-          btn.classList.remove('border-slate-700', 'bg-slate-900');
-        }}
-      }}
-
-      // Likes beim Laden abrufen
-      fetch('/api/likes/' + slug)
-        .then(function(r) {{ return r.json(); }})
-        .then(function(d) {{ updateUI(d.likes, liked); }})
-        .catch(function() {{ countEl.textContent = ''; }});
-
-      btn.addEventListener('click', function() {{
-        if (liked) {{
-          msg.textContent = 'Du hast diesen Artikel bereits geliked ❤️';
-          heart.style.transform = 'scale(1.3)';
-          setTimeout(function() {{ heart.style.transform = ''; }}, 300);
-          return;
-        }}
-        fetch('/api/likes/' + slug, {{ method: 'POST' }})
-          .then(function(r) {{ return r.json(); }})
-          .then(function(d) {{
-            liked = true;
-            localStorage.setItem(storageKey, '1');
-            updateUI(d.likes, true);
-            heart.style.transform = 'scale(1.4)';
-            setTimeout(function() {{ heart.style.transform = ''; }}, 300);
-            msg.textContent = 'Danke für dein Like! 🎉';
-          }})
-          .catch(function() {{ msg.textContent = 'Fehler – bitte nochmal versuchen.'; }});
-      }});
-    }})();
-  </script>
-  <script{nonce_attr}>
     document.querySelectorAll('.highlight').forEach(function(block) {{
       var wrapper = document.createElement('div');
       wrapper.className = 'code-wrapper';
@@ -325,17 +251,6 @@ def post_html(post, nonce=""):
       </header>
       <div class="prose">
         {rendered}
-      </div>
-      <div style="margin-top:3.5rem; padding-top:2rem; border-top:1px solid var(--border); display:flex; flex-direction:column; align-items:center; gap:0.875rem;">
-        <p style="color:var(--text-muted); font-size:0.875rem;">Hat dir dieser Artikel gefallen?</p>
-        <button id="like-btn"
-          data-slug="{html.escape(post['slug'])}"
-          style="display:flex; align-items:center; gap:0.6rem; padding:0.6rem 1.5rem; border-radius:9999px; border:1px solid var(--border); background:var(--bg-card); cursor:pointer; transition:border-color 0.2s, background 0.2s, box-shadow 0.2s; min-height:44px;"
-          aria-label="Artikel liken">
-          <span id="like-heart" style="font-size:1.5rem; display:inline-block;">🤍</span>
-          <span id="like-count" style="color:var(--text-dim); font-size:0.9rem; font-weight:500;">…</span>
-        </button>
-        <p id="like-msg" style="color:#f9a8d4; font-size:0.75rem; min-height:1rem;"></p>
       </div>
       <div style="margin-top:3rem; padding-top:2rem; border-top:1px solid var(--border); width:100%;">
         <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:1.5rem; text-transform:uppercase; letter-spacing:0.08em; font-family:'JetBrains Mono',monospace;">Kommentare</p>
@@ -449,19 +364,6 @@ class BlogHandler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(encoded)
 
-    def do_POST(self):
-        path = self.path.split("?")[0].rstrip("/") or "/"
-        if re.match(r"^/api/likes/[a-z0-9_-]+$", path):
-            slug = path.split("/")[-1]
-            # Prüfen ob der Slug einem echten Post entspricht
-            if not (POSTS_DIR / f"{slug}.md").exists():
-                self.send_text(_json.dumps({"error": "not found"}), "application/json; charset=utf-8", 404)
-                return
-            new_count = add_like(slug)
-            self.send_text(_json.dumps({"slug": slug, "likes": new_count}), "application/json; charset=utf-8")
-        else:
-            self.send_text(_json.dumps({"error": "not found"}), "application/json; charset=utf-8", 404)
-
     def do_GET(self):
         path = self.path.split("?")[0].rstrip("/") or "/"
         nonce = secrets.token_urlsafe(16)
@@ -507,11 +409,6 @@ class BlogHandler(http.server.BaseHTTPRequestHandler):
                 "Sitemap: https://blog.twh0.de/sitemap.xml\n"
             )
             self.send_text(robots, "text/plain; charset=utf-8")
-
-        elif re.match(r"^/api/likes/[a-z0-9_-]+$", path):
-            slug = path.split("/")[-1]
-            likes = get_likes(slug)
-            self.send_text(_json.dumps({"slug": slug, "likes": likes}), "application/json; charset=utf-8")
 
         elif path == "/feed.xml":
             posts = load_posts()

@@ -13,7 +13,6 @@ Promptlog is a small Python blog server that renders Markdown files as HTML. No 
 - Renders Markdown posts with syntax highlighting (Pygments)
 - Reads post metadata from YAML frontmatter (`title`, `date`, `description`)
 - Sets nonce-based CSP headers on every response
-- Tracks likes server-side, rate-limited per browser session
 - Serves an RSS feed at `/feed.xml`
 - Adds Open Graph, Twitter Card, and JSON-LD meta tags
 - Handles ETags and Last-Modified headers for caching
@@ -22,7 +21,11 @@ Promptlog is a small Python blog server that renders Markdown files as HTML. No 
 
 ## Stack
 
-Python 3 with the standard `http.server` module. Tailwind CSS via CDN. `python-markdown` and Pygments for rendering. Inter and JetBrains Mono from Google Fonts. Deployed behind Caddy and a Cloudflare Tunnel.
+Python 3 with the standard `http.server` module. Tailwind CSS (local build). `python-markdown` and Pygments for rendering. Inter and JetBrains Mono from Google Fonts. Deployed behind Caddy and a Cloudflare Tunnel.
+
+## Comments & Reactions
+
+Comments and reactions are powered by [Giscus](https://giscus.app) — a GitHub Discussions-based system. No database required. Readers can leave comments and react to posts directly via their GitHub account. The comment widget is embedded at the bottom of every post.
 
 ## Adding a post
 
