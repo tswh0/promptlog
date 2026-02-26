@@ -481,6 +481,25 @@ def post_html(post, nonce=""):
         </button>
         <p id="like-msg" style="color:#f9a8d4; font-size:0.75rem; min-height:1rem;"></p>
       </div>
+      <div style="margin-top:3rem; padding-top:2rem; border-top:1px solid var(--border);">
+        <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:1.25rem; text-transform:uppercase; letter-spacing:0.08em; font-family:'JetBrains Mono',monospace;">Kommentare</p>
+        <script src="https://giscus.app/client.js"
+                data-repo="tswh0/promptlog"
+                data-repo-id="R_kgDORZpccA"
+                data-category="General"
+                data-category-id="DIC_kwDORZpccM4C3RW9"
+                data-mapping="pathname"
+                data-strict="0"
+                data-reactions-enabled="1"
+                data-emit-metadata="0"
+                data-input-position="top"
+                data-theme="https://blog.twh0.de/static/giscus.css"
+                data-lang="de"
+                data-loading="lazy"
+                crossorigin="anonymous"
+                async>
+        </script>
+      </div>
     </article>"""
     return base_html(
         post["title"] + " – Promptlog",
@@ -543,11 +562,12 @@ class BlogHandler(http.server.BaseHTTPRequestHandler):
         if nonce:
             csp = (
                 f"default-src 'self'; "
-                f"script-src 'self' 'nonce-{nonce}' https://cdn.tailwindcss.com; "
+                f"script-src 'self' 'nonce-{nonce}' https://cdn.tailwindcss.com https://giscus.app; "
                 f"style-src 'self' 'unsafe-inline'; "
                 f"img-src 'self' data: https:; "
-                f"connect-src 'self'; "
+                f"connect-src 'self' https://giscus.app; "
                 f"font-src 'self' https://fonts.gstatic.com; "
+                f"frame-src https://giscus.app; "
                 f"frame-ancestors 'none'; "
                 f"base-uri 'self'; "
                 f"form-action 'self';"
@@ -591,6 +611,34 @@ class BlogHandler(http.server.BaseHTTPRequestHandler):
         if path == "/" or path == "":
             posts = load_posts()
             self.send_html(index_html(posts, nonce=nonce), nonce=nonce)
+
+        elif path.startswith("/static/"):
+            # Statische Dateien aus ./static/ ausliefern
+            static_path = Path(__file__).parent / path.lstrip("/")
+            if static_path.exists() and static_path.is_file() and static_path.suffix in (".css", ".js", ".svg", ".png", ".ico"):
+                content_types = {".css": "text/css; charset=utf-8", ".js": "application/javascript; charset=utf-8",
+                                 ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon"}
+                ct = content_types.get(static_path.suffix, "application/octet-stream")
+                data = static_path.read_bytes()
+                etag = self._etag(data)
+                mtime = static_path.stat().st_mtime
+                lm = formatdate(mtime, usegmt=True)
+                if_none_match = self.headers.get("If-None-Match", "")
+                if if_none_match and etag in if_none_match:
+                    self.send_response(304)
+                    self.send_header("ETag", etag)
+                    self.end_headers()
+                    return
+                self.send_response(200)
+                self.send_header("Content-Type", ct)
+                self.send_header("Content-Length", str(len(data)))
+                self.send_header("ETag", etag)
+                self.send_header("Last-Modified", lm)
+                self.send_header("Cache-Control", "public, max-age=86400")
+                self.end_headers()
+                self.wfile.write(data)
+            else:
+                self.send_html(not_found_html(nonce=nonce), 404, nonce=nonce)
 
         elif path == "/robots.txt":
             robots = (
