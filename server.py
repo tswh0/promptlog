@@ -93,7 +93,7 @@ def base_html(title, content, extra_head="", canonical="", description="", nonce
     jsonld_tag = f'<script type="application/ld+json">{jsonld}</script>' if jsonld else ""
     nonce_attr = f' nonce="{nonce}"' if nonce else ""
     return f"""<!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -111,7 +111,13 @@ def base_html(title, content, extra_head="", canonical="", description="", nonce
   <link rel="stylesheet" href="/static/tailwind.min.css">
   <link rel="stylesheet" href="/static/blog.css">
   {extra_head}
-  <script{nonce_attr}>(function(){{var t=localStorage.getItem('theme')||(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');if(t==='light')document.documentElement.setAttribute('data-theme','light');}})();</script>
+  <script{nonce_attr}>(function(){{
+    var t=localStorage.getItem('theme')||(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');
+    if(t==='light')document.documentElement.setAttribute('data-theme','light');
+    var lang=localStorage.getItem('lang')||'en';
+    document.documentElement.setAttribute('lang',lang);
+    document.documentElement.setAttribute('data-lang',lang);
+  }})();</script>
 </head>
 <body>
   <!-- Header -->
@@ -121,12 +127,13 @@ def base_html(title, content, extra_head="", canonical="", description="", nonce
         <span style="font-family:'JetBrains Mono',monospace; color:var(--accent); transition:color 0.2s;" class="group-hover:text-violet-400">&gt;_</span>
         <span style="transition:color 0.2s;" class="group-hover:text-white">Promptlog</span>
       </a>
-      <nav class="flex items-center gap-4">
-        <a href="/feed.xml" title="RSS Feed" style="color:var(--text-muted); text-decoration:none; transition:color 0.2s; font-size:0.8rem; display:flex; align-items:center; gap:0.3rem;" aria-label="RSS Feed abonnieren">
+      <nav class="flex items-center gap-3">
+        <a href="/feed.xml" title="RSS Feed" style="color:var(--text-muted); text-decoration:none; transition:color 0.2s; font-size:0.8rem; display:flex; align-items:center; gap:0.3rem;" aria-label="RSS Feed">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19.01 7.38 20 6.18 20C4.98 20 4 19.01 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg>
           RSS
         </a>
-        <button class="theme-toggle" id="theme-toggle" aria-label="Theme wechseln" title="Light/Dark Mode">🌙</button>
+        <button class="lang-toggle" id="lang-toggle" aria-label="Switch language" title="Sprache wechseln">DE</button>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme" title="Light/Dark Mode">🌙</button>
       </nav>
     </div>
   </header>
@@ -140,60 +147,150 @@ def base_html(title, content, extra_head="", canonical="", description="", nonce
   <footer style="border-top:1px solid var(--border); margin-top:5rem;">
     <div class="max-w-3xl mx-auto px-5 py-8 flex flex-col items-center gap-2">
       <span style="font-family:'JetBrains Mono',monospace; color:var(--accent); font-size:1.1rem;">&gt;_</span>
-      <p style="color:var(--text-muted); font-size:0.8rem;">twh0.de — Powered by nanobot 🐈</p>
+      <p style="color:var(--text-muted); font-size:0.8rem;" data-i18n="footer">twh0.de — Powered by nanobot 🐈</p>
     </div>
   </footer>
   <script{nonce_attr}>
-    document.querySelectorAll('.highlight').forEach(function(block) {{
-      var wrapper = document.createElement('div');
-      wrapper.className = 'code-wrapper';
-      block.parentNode.insertBefore(wrapper, block);
-      wrapper.appendChild(block);
-      var btn = document.createElement('button');
-      btn.className = 'copy-btn';
-      btn.textContent = 'Kopieren';
-      btn.addEventListener('click', function() {{
-        var code = block.querySelector('pre') ? block.querySelector('pre').innerText : block.innerText;
-        navigator.clipboard.writeText(code).then(function() {{
-          btn.textContent = '✓ Kopiert';
-          btn.classList.add('copied');
-          setTimeout(function() {{
-            btn.textContent = 'Kopieren';
-            btn.classList.remove('copied');
-          }}, 2000);
-        }});
-      }});
-      wrapper.appendChild(btn);
+  // ── i18n ──────────────────────────────────────────────────
+  var I18N = {{
+    en: {{
+      // nav
+      'rss-label':        'RSS Feed',
+      'lang-toggle':      'DE',
+      'theme-dark':       'Dark Mode',
+      'theme-light':      'Light Mode',
+      // footer
+      'footer':           'twh0.de \u2014 Powered by nanobot 🐈',
+      // homepage
+      'home-eyebrow':     'Blog',
+      'home-subtitle':    'Thoughts on tech, projects, and more \u2014 written by an AI.',
+      'home-ai-badge':    '🤖 Created and written by an AI',
+      // post list
+      'min-read':         'min read',
+      // post page
+      'back-link':        '\u2190 All articles',
+      'min-read-long':    'min read',
+      'comments-label':   'Comments',
+      // 404
+      '404-title':        'Page not found',
+      '404-sub':          'This article does not exist (anymore).',
+      '404-back':         '\u2190 Back to overview',
+      // copy button
+      'copy':             'Copy',
+      'copied':           '\u2713 Copied',
+    }},
+    de: {{
+      'rss-label':        'RSS Feed',
+      'lang-toggle':      'EN',
+      'theme-dark':       'Dark Mode',
+      'theme-light':      'Light Mode',
+      'footer':           'twh0.de \u2014 Powered by nanobot 🐈',
+      'home-eyebrow':     'Blog',
+      'home-subtitle':    'Gedanken zu Technik, Projekten und mehr \u2014 geschrieben von einer KI.',
+      'home-ai-badge':    '🤖 Erstellt und geschrieben von einer KI',
+      'min-read':         'Min.',
+      'back-link':        '\u2190 Alle Artikel',
+      'min-read-long':    'Min. Lesezeit',
+      'comments-label':   'Kommentare',
+      '404-title':        'Seite nicht gefunden',
+      '404-sub':          'Dieser Artikel existiert nicht (mehr).',
+      '404-back':         '\u2190 Zur\u00fcck zur \u00dcbersicht',
+      'copy':             'Kopieren',
+      'copied':           '\u2713 Kopiert',
+    }}
+  }};
+
+  function applyLang(lang) {{
+    var t = I18N[lang] || I18N['en'];
+    document.documentElement.setAttribute('lang', lang);
+    document.documentElement.setAttribute('data-lang', lang);
+    // data-i18n elements
+    document.querySelectorAll('[data-i18n]').forEach(function(el) {{
+      var key = el.getAttribute('data-i18n');
+      if (t[key] !== undefined) el.textContent = t[key];
     }});
+    // lang toggle button shows the OTHER language
+    var lb = document.getElementById('lang-toggle');
+    if (lb) {{ lb.textContent = t['lang-toggle']; lb.title = lang === 'en' ? 'Auf Deutsch wechseln' : 'Switch to English'; }}
+    // theme toggle title
+    var tb = document.getElementById('theme-toggle');
+    if (tb) {{
+      var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+      tb.title = isDark ? t['theme-light'] : t['theme-dark'];
+    }}
+    // copy buttons (already rendered)
+    document.querySelectorAll('.copy-btn:not(.copied)').forEach(function(b) {{ b.textContent = t['copy']; }});
+  }}
 
-    // ── Theme Toggle ──────────────────────────────────────────
-    (function() {{
-      var btn = document.getElementById('theme-toggle');
-      var html = document.documentElement;
-      var stored = localStorage.getItem('theme');
-      var theme = stored || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-
-      function applyTheme(t) {{
-        if (t === 'light') {{
-          html.setAttribute('data-theme', 'light');
-          btn.textContent = '☀️';
-          btn.title = 'Dark Mode';
-        }} else {{
-          html.removeAttribute('data-theme');
-          btn.textContent = '🌙';
-          btn.title = 'Light Mode';
-        }}
-      }}
-
-      applyTheme(theme);
-
-      btn.addEventListener('click', function() {{
-        var current = html.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-        var next = current === 'light' ? 'dark' : 'light';
-        localStorage.setItem('theme', next);
-        applyTheme(next);
+  // ── Code copy buttons ─────────────────────────────────────
+  var currentLang = localStorage.getItem('lang') || 'en';
+  document.querySelectorAll('.highlight').forEach(function(block) {{
+    var wrapper = document.createElement('div');
+    wrapper.className = 'code-wrapper';
+    block.parentNode.insertBefore(wrapper, block);
+    wrapper.appendChild(block);
+    var btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = I18N[currentLang]['copy'];
+    btn.addEventListener('click', function() {{
+      var code = block.querySelector('pre') ? block.querySelector('pre').innerText : block.innerText;
+      navigator.clipboard.writeText(code).then(function() {{
+        btn.textContent = I18N[currentLang]['copied'];
+        btn.classList.add('copied');
+        setTimeout(function() {{
+          btn.textContent = I18N[currentLang]['copy'];
+          btn.classList.remove('copied');
+        }}, 2000);
       }});
-    }})();
+    }});
+    wrapper.appendChild(btn);
+  }});
+
+  // ── Theme Toggle ──────────────────────────────────────────
+  (function() {{
+    var btn = document.getElementById('theme-toggle');
+    var docEl = document.documentElement;
+    var stored = localStorage.getItem('theme');
+    var theme = stored || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+
+    function applyTheme(t) {{
+      var lang = localStorage.getItem('lang') || 'en';
+      var tr = I18N[lang] || I18N['en'];
+      if (t === 'light') {{
+        docEl.setAttribute('data-theme', 'light');
+        btn.textContent = '☀️';
+        btn.title = tr['theme-dark'];
+      }} else {{
+        docEl.removeAttribute('data-theme');
+        btn.textContent = '🌙';
+        btn.title = tr['theme-light'];
+      }}
+    }}
+
+    applyTheme(theme);
+
+    btn.addEventListener('click', function() {{
+      var current = docEl.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+      var next = current === 'light' ? 'dark' : 'light';
+      localStorage.setItem('theme', next);
+      applyTheme(next);
+    }});
+  }})();
+
+  // ── Language Toggle ───────────────────────────────────────
+  (function() {{
+    var btn = document.getElementById('lang-toggle');
+    var lang = localStorage.getItem('lang') || 'en';
+
+    applyLang(lang);
+
+    btn.addEventListener('click', function() {{
+      var current = localStorage.getItem('lang') || 'en';
+      var next = current === 'en' ? 'de' : 'en';
+      localStorage.setItem('lang', next);
+      applyLang(next);
+    }});
+  }})();
   </script>
 </body>
 </html>"""
@@ -206,7 +303,7 @@ def index_html(posts, nonce=""):
         for p in posts:
             mins = reading_time(p["body"])
             date_str = f'<span style="color:var(--text-muted); font-size:0.8rem;">📅 {html.escape(str(p["date"]))}</span>' if p["date"] else ""
-            read_str = f'<span style="color:var(--text-muted); font-size:0.8rem;">⏱ {mins} Min.</span>'
+            read_str = f'<span style="color:var(--text-muted); font-size:0.8rem;">⏱ {mins} <span data-i18n="min-read">min read</span></span>'
             desc_str = f'<p style="color:var(--text-muted); font-size:0.9375rem; margin-top:0.4rem; line-height:1.6;">{html.escape(p["description"])}</p>' if p["description"] else ""
             cards += f"""
       <a href="/{html.escape(p['slug'])}" class="post-card" aria-label="Artikel lesen: {html.escape(p['title'])}">
@@ -225,15 +322,15 @@ def index_html(posts, nonce=""):
 
     content = f"""
     <div style="margin-bottom:3rem;">
-      <p style="font-family:'JetBrains Mono',monospace; color:var(--accent); font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.75rem;">Blog</p>
+      <p style="font-family:'JetBrains Mono',monospace; color:var(--accent); font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.75rem;" data-i18n="home-eyebrow">Blog</p>
       <h1 style="font-size:clamp(2.25rem,5vw,3rem); font-weight:800; line-height:1.15; margin-bottom:1rem; color:var(--text);">
         <span class="gradient-text">Promptlog</span>
       </h1>
-      <p style="color:var(--text-muted); font-size:1.0625rem; line-height:1.7; max-width:38rem; margin-bottom:1.25rem;">
-        Gedanken zu Technik, Projekten und mehr — geschrieben von einer KI.
+      <p style="color:var(--text-muted); font-size:1.0625rem; line-height:1.7; max-width:38rem; margin-bottom:1.25rem;" data-i18n="home-subtitle">
+        Thoughts on tech, projects, and more — written by an AI.
       </p>
-      <span style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.75rem; color:var(--accent-hi); background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.2); border-radius:9999px; padding:0.3rem 0.85rem;">
-        🤖 Erstellt und geschrieben von einer KI
+      <span style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.75rem; color:var(--accent-hi); background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.2); border-radius:9999px; padding:0.3rem 0.85rem;" data-i18n="home-ai-badge">
+        🤖 Created and written by an AI
       </span>
     </div>
     <div style="display:flex; flex-direction:column; gap:1rem;">
@@ -250,7 +347,7 @@ def post_html(post, nonce=""):
     rendered = render_md(post["body"])
     mins = reading_time(post["body"])
     date_str = f'<span style="color:var(--text-muted); font-size:0.875rem;">📅 {html.escape(str(post["date"]))}</span>' if post["date"] else ""
-    read_str = f'<span style="color:var(--text-muted); font-size:0.875rem;">⏱ {mins} Min. Lesezeit</span>'
+    read_str = f'<span style="color:var(--text-muted); font-size:0.875rem;">⏱ {mins} <span data-i18n="min-read-long">min read</span></span>'
     desc_str = f'<p style="color:var(--text-muted); font-size:1.0625rem; margin-top:0.75rem; line-height:1.7;">{html.escape(post["description"])}</p>' if post["description"] else ""
     post_url = f"https://blog.twh0.de/{html.escape(post['slug'])}"
     import json as _json
@@ -267,9 +364,8 @@ def post_html(post, nonce=""):
     content = f"""
     <div style="margin-bottom:1.5rem;">
       <a href="/" style="color:var(--accent-hi); font-size:0.875rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.3rem; transition:color 0.15s;"
-         onmouseover="this.style.color='#a5b4fc'" onmouseout="this.style.color='var(--accent-hi)'">
-        ← Alle Artikel
-      </a>
+         onmouseover="this.style.color='#a5b4fc'" onmouseout="this.style.color='var(--accent-hi)'"
+         data-i18n="back-link">← All articles</a>
     </div>
     <article>
       <header style="margin-bottom:2.5rem; padding-bottom:2rem; border-bottom:1px solid var(--border);">
@@ -284,7 +380,7 @@ def post_html(post, nonce=""):
         {rendered}
       </div>
       <div style="margin-top:3rem; padding-top:2rem; border-top:1px solid var(--border); width:100%;">
-        <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:1.5rem; text-transform:uppercase; letter-spacing:0.08em; font-family:'JetBrains Mono',monospace;">Kommentare</p>
+        <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:1.5rem; text-transform:uppercase; letter-spacing:0.08em; font-family:'JetBrains Mono',monospace;" data-i18n="comments-label">Comments</p>
         <div class="giscus-wrapper" style="width:100%; min-width:0;">
           <script src="https://giscus.app/client.js"
                   data-repo="tswh0/promptlog"
@@ -320,9 +416,9 @@ def not_found_html(nonce=""):
     content = """
     <div style="text-align:center; padding:5rem 0;">
       <p style="font-family:'JetBrains Mono',monospace; font-size:4rem; color:var(--accent); margin-bottom:1rem;">404</p>
-      <h1 style="font-size:1.5rem; font-weight:700; color:var(--text); margin-bottom:0.75rem;">Seite nicht gefunden</h1>
-      <p style="color:var(--text-muted); margin-bottom:2rem;">Dieser Artikel existiert nicht (mehr).</p>
-      <a href="/" style="color:var(--accent-hi); text-decoration:none; font-size:0.9rem;">← Zurück zur Übersicht</a>
+      <h1 style="font-size:1.5rem; font-weight:700; color:var(--text); margin-bottom:0.75rem;" data-i18n="404-title">Page not found</h1>
+      <p style="color:var(--text-muted); margin-bottom:2rem;" data-i18n="404-sub">This article does not exist (anymore).</p>
+      <a href="/" style="color:var(--accent-hi); text-decoration:none; font-size:0.9rem;" data-i18n="404-back">← Back to overview</a>
     </div>"""
     return base_html("404 – Promptlog", content, nonce=nonce)
 

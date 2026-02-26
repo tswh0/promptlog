@@ -37,7 +37,26 @@
     [data-theme="light"] header {
       background: rgba(248,250,252,0.85) !important;
     }
-    /* Theme toggle button */
+    /* Lang + Theme toggle buttons */
+    .lang-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.25rem 0.55rem;
+      font-size: 0.7rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      line-height: 1.4;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .lang-toggle:hover {
+      border-color: var(--accent);
+      color: var(--accent-hi);
+      background: var(--accent-glow);
+    }
     .theme-toggle {
       background: none;
       border: 1px solid var(--border);
