@@ -1,31 +1,31 @@
 ---
-title: Installing Caddy & Wildcard Certificate via Cloudflare
+title: Installing Caddy & wildcard certificate via Cloudflare
 date: 2026-02-26
 description: How to set up Caddy as a web server, install the Cloudflare DNS plugin, and obtain an automatic wildcard TLS certificate for *.example.com.
 ---
 
-# Installing Caddy & Wildcard Certificate via Cloudflare
+# Installing Caddy & wildcard certificate via Cloudflare
 
-Caddy is a modern web server that automatically obtains and renews TLS certificates via Let's Encrypt. For **wildcard certificates** (`*.example.com`), however, a DNS challenge is required – and that's exactly what the official Cloudflare plugin is for.
+Caddy is a web server that handles TLS certificates automatically via Let's Encrypt. For **wildcard certificates** (`*.example.com`) you need a DNS challenge, which is where the Cloudflare plugin comes in.
 
-In this article I'll show you how to install Caddy on a Debian/Ubuntu server, add the Cloudflare DNS module, and set up a wildcard certificate.
+Here's how to get it running on Debian/Ubuntu.
 
 ## Prerequisites
 
-- A server running Debian 12 / Ubuntu 22.04+
-- A domain whose DNS is managed via **Cloudflare**
-- A Cloudflare **API token** with `Zone:Read` and `DNS:Edit` permissions
+- Debian 12 / Ubuntu 22.04+
+- A domain with DNS managed through Cloudflare
+- A Cloudflare API token with `Zone:Read` and `DNS:Edit` permissions
 
-### Creating a Cloudflare API Token
+### Creating a Cloudflare API token
 
 1. Cloudflare Dashboard → **My Profile** → **API Tokens** → *Create Token*
-2. Template: select **Edit zone DNS**
-3. Zone Resources: select the desired domain
-4. Create the token and store it securely
+2. Template: **Edit zone DNS**
+3. Zone Resources: pick your domain
+4. Create and save the token somewhere safe
 
 ## Installing Caddy
 
-Caddy is installed via the official APT repository. Important: you must use the **beta version**, since the `caddy add-package` command (for loading additional modules) is not yet available in the stable release.
+One thing to know upfront: you need the **beta version** of Caddy. The `caddy add-package` command isn't in the stable release yet, and you'll need it to add the Cloudflare module.
 
 ```bash
 apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
@@ -39,28 +39,28 @@ curl -1sLf 'https://dl.cloudsmith.io/public/caddy/testing/debian.deb.txt' \
 apt update && apt install caddy
 ```
 
-Check the version:
+Check it installed:
 
 ```bash
 caddy version
 # v2.11.1 h1:...
 ```
 
-## Installing the Cloudflare DNS Plugin
+## Installing the Cloudflare DNS plugin
 
-The standard Caddy binary does not include the Cloudflare module. It needs to be added afterwards – Caddy automatically builds a new binary for this via the official build service:
+The default Caddy binary doesn't include the Cloudflare module. Add it with:
 
 ```bash
 caddy add-package github.com/caddy-dns/cloudflare
 ```
 
-Caddy downloads the new binary and replaces the old one. Then restart the service:
+Caddy fetches a new binary from the official build service and replaces the old one. Then restart:
 
 ```bash
 systemctl restart caddy
 ```
 
-Verify the module:
+Confirm the module loaded:
 
 ```bash
 caddy list-modules | grep cloudflare
@@ -69,15 +69,14 @@ caddy list-modules | grep cloudflare
 
 ## Configuring the Caddyfile
 
-The configuration lives at `/etc/caddy/Caddyfile`. Here's a complete example for a wildcard domain with Cloudflare DNS challenge:
+The config lives at `/etc/caddy/Caddyfile`. A complete example for a wildcard domain:
 
 ```caddy
 {
-    # Global options
     email your@email.com
 }
 
-# Wildcard certificate for *.example.com and example.com
+# Reusable TLS snippet
 (tls_wildcard) {
     tls {
         dns cloudflare YOUR_CLOUDFLARE_API_TOKEN
@@ -88,7 +87,6 @@ The configuration lives at `/etc/caddy/Caddyfile`. Here's a complete example for
 *.example.com example.com {
     import tls_wildcard
 
-    # Routing by subdomain
     @blog host blog.example.com
     handle @blog {
         reverse_proxy 127.0.0.1:2346
@@ -105,43 +103,39 @@ The configuration lives at `/etc/caddy/Caddyfile`. Here's a complete example for
 }
 ```
 
-The `(tls_wildcard)` snippet is a **Caddy snippet** (a reusable block) that gets included with `import tls_wildcard`. This way the TLS configuration only needs to be defined once.
+The `(tls_wildcard)` block is a Caddy snippet – define the TLS config once, reuse it everywhere with `import tls_wildcard`.
 
-### What Happens on First Start?
+### What happens on first start
 
-Caddy detects that a wildcard certificate is needed and automatically initiates the **ACME DNS challenge**:
+Caddy sees the wildcard cert is needed and kicks off the ACME DNS challenge:
 
 1. Caddy generates a challenge token
-2. The Cloudflare plugin creates a `_acme-challenge` TXT record in the DNS zone
-3. Let's Encrypt verifies the record
-4. Caddy receives the wildcard certificate and stores it locally
-5. The TXT record is deleted again
+2. The Cloudflare plugin creates a `_acme-challenge` TXT record
+3. Let's Encrypt verifies it
+4. Caddy gets the certificate and stores it locally
+5. The TXT record is removed
 
-All of this happens fully automatically – including renewal every 60 days.
+This all happens automatically, including renewal every 60 days.
 
-## Verifying the Certificate
+## Verifying the certificate
 
 ```bash
-# Caddy status
 systemctl status caddy
-
-# Show stored certificates
 ls /var/lib/caddy/.local/share/caddy/certificates/
 ```
 
-Or simply in the browser: the padlock icon at `https://blog.example.com` shows a valid certificate for `*.example.com`.
+Or just open `https://blog.example.com` in a browser – the padlock should show a valid cert for `*.example.com`.
 
-## Security Extras
+## Security extras
 
-A few recommended additions to the global Caddy configuration:
+A few additions worth putting in the global config block:
 
 ```caddy
 {
     servers {
-        # TLS 1.2+ only
         protocols tls1.2 tls1.3
 
-        # Cloudflare IPs as trusted proxies (automatically updated)
+        # Cloudflare IPs as trusted proxies, auto-updated
         trusted_proxies cloudflare {
             interval 12h
             timeout 15s
@@ -151,8 +145,9 @@ A few recommended additions to the global Caddy configuration:
 }
 ```
 
+And a reusable security headers snippet:
+
 ```caddy
-# Security headers snippet
 (security_headers) {
     header {
         Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
@@ -166,4 +161,4 @@ A few recommended additions to the global Caddy configuration:
 
 ## Conclusion
 
-Caddy makes TLS certificates effortless. With the Cloudflare plugin, a wildcard certificate covering all subdomains is set up in minutes – fully automatic, with no manual renewal. For anyone running multiple services under one domain, this is the most elegant solution.
+Once it's set up, you don't think about certificates again. Caddy handles issuance, renewal, and the DNS challenge entirely on its own. For a setup with multiple subdomains under one domain, a single wildcard cert is much cleaner than managing individual certs per subdomain.

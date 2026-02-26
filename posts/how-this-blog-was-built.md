@@ -1,40 +1,37 @@
 ---
-title: How This Blog Was Built – A Minimal Python Blog Server
+title: How this blog was built – a minimal Python blog server
 date: 2026-02-26
 description: No CMS, no framework – just Python, Markdown, and Caddy. How I built a lean blog in under an hour.
 ---
 
-# How This Blog Was Built – A Minimal Python Blog Server
+# How this blog was built – a minimal Python blog server
 
-Sometimes less is more. Instead of installing WordPress, Ghost, or another CMS, I wanted something simple: drop in Markdown files, done. No admin panel, no database, no overhead.
+I wanted something simple: drop in Markdown files, done. No admin panel, no database, no WordPress to update every three weeks.
 
-The result is this blog – built by my AI assistant **nanobot** in under an hour.
+The result is this blog, built by my AI assistant **nanobot** in under an hour.
 
-## The Idea
+## The idea
 
-The concept is straightforward:
-
-1. Blog posts are stored as `.md` files in the `posts/` directory
-2. A Python server reads these files, parses them, and renders them to HTML
+1. Blog posts live as `.md` files in the `posts/` directory
+2. A Python server reads them, parses them, and renders HTML
 3. Caddy serves the blog at `blog.twh0.de` with HTTPS
 
-No database. No build pipeline. No deployment process. Just create a new `.md` file – and the article is live.
+No database. No build pipeline. Create a `.md` file – the article is live.
 
-## The Architecture
+## The architecture
 
-### Directory Structure
+### Directory structure
 
 ```
 blog/
 ├── server.py        # The Python web server
 └── posts/           # Markdown articles go here
-    ├── hallo-welt.md
     └── how-this-blog-was-built.md
 ```
 
 ### Frontmatter
 
-Every article starts with a YAML frontmatter block containing metadata:
+Every article starts with a YAML frontmatter block:
 
 ```markdown
 ---
@@ -45,18 +42,16 @@ description: A short description for the overview page.
 
 # My Article
 
-The actual content starts here...
+Content starts here...
 ```
 
-The server parses this block with a simple regex and separates it from the Markdown body.
+The server parses this with a regex and separates it from the Markdown body.
 
-### The Python Server
+### The Python server
 
-The server is built on Python's built-in `http.server` module – no external web frameworks needed. It listens on `127.0.0.1:2346` and is only accessible locally (Caddy handles public access).
+Built on Python's built-in `http.server` – no web framework needed. It listens on `127.0.0.1:2346`, local-only (Caddy handles the public side).
 
-The key components:
-
-**Frontmatter parser** – reads `title`, `date`, and `description` from the YAML header:
+Frontmatter parser:
 
 ```python
 def parse_frontmatter(text):
@@ -71,27 +66,25 @@ def parse_frontmatter(text):
     return meta, body
 ```
 
-**Markdown renderer** – uses the `markdown` library with useful extensions:
+Markdown renderer with syntax highlighting:
 
 ```python
 MD = markdown.Markdown(extensions=[
-    "extra",           # Tables, footnotes, etc.
-    "smarty",          # Typographic quotes
-    FencedCodeExtension(),   # Code blocks with ```
-    CodeHiliteExtension(),   # Syntax highlighting via Pygments
-    TocExtension(permalink=True),  # Table of contents
+    "extra",
+    "smarty",
+    FencedCodeExtension(),
+    CodeHiliteExtension(),
+    TocExtension(permalink=True),
 ])
 ```
 
-**Request handler** – two routes:
-- `/` → Overview of all articles (sorted by date, newest first)
-- `/<slug>` → Single article, loaded from `posts/<slug>.md`
+Two routes:
+- `/` → article list, sorted by date
+- `/<slug>` → single article from `posts/<slug>.md`
 
-The HTML template is defined directly in Python as an f-string – with Tailwind CSS for styling and a dark design.
+The HTML template is an f-string in Python, styled with Tailwind CSS.
 
-### systemd Service
-
-The blog server runs as a systemd service and starts automatically on boot:
+### systemd service
 
 ```ini
 [Unit]
@@ -109,9 +102,9 @@ RestartSec=5
 WantedBy=multi-user.target
 ```
 
-### Caddy as Reverse Proxy
+### Caddy as reverse proxy
 
-Caddy handles TLS (wildcard certificate via Cloudflare DNS challenge), HTTPS redirects, security headers, and forwards requests for `blog.twh0.de` to the local Python server. I explain how to install Caddy and set up a wildcard certificate in detail in [this article](/caddy-wildcard-cert-cloudflare).
+Caddy handles TLS, HTTPS redirects, and security headers, then forwards `blog.twh0.de` to the local server. How to set up the wildcard certificate is covered in [this article](/caddy-wildcard-cert-cloudflare).
 
 ```
 @blog host blog.twh0.de
@@ -120,20 +113,16 @@ handle @blog {
 }
 ```
 
-The wildcard certificate for `*.twh0.de` is automatically obtained and renewed by Caddy via the Cloudflare API – no manual certificate management needed.
-
-## Writing a New Article
-
-It's this simple:
+## Writing a new article
 
 ```bash
 nano /root/.nanobot/workspace/projects/blog/posts/my-article.md
 ```
 
-Add frontmatter, write Markdown, save – done. The article is immediately available at `blog.twh0.de/my-article`, with no restart or build step required.
+Add frontmatter, write Markdown, save. The article is live at `blog.twh0.de/my-article` immediately – no restart, no build step.
 
 ## Conclusion
 
-The entire system consists of a single Python file (~250 lines) and a folder of Markdown files. It's fast, low-maintenance, and fully under control – no third-party CMS that needs updates or brings security vulnerabilities.
+The whole thing is one Python file (~250 lines) and a folder of Markdown files. Fast, low-maintenance, no third-party CMS to babysit.
 
-Sometimes the simplest solution is the best one. ✌️
+Sometimes the boring solution is the right one. ✌️
