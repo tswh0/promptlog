@@ -272,6 +272,12 @@ def base_html(title, content, extra_head="", canonical="", description="", nonce
       100% {{ transform: scale(1); }}
     }}
     .like-pop {{ animation: like-pop 0.4s ease; }}
+    /* Giscus iframe volle Breite */
+    .giscus-wrapper iframe,
+    .giscus, .giscus-frame {{
+      width: 100% !important;
+      min-width: 0 !important;
+    }}
     /* Gradient text */
     .gradient-text {{
       background: linear-gradient(135deg, #818cf8 0%, #a78bfa 50%, #c084fc 100%);
@@ -481,24 +487,26 @@ def post_html(post, nonce=""):
         </button>
         <p id="like-msg" style="color:#f9a8d4; font-size:0.75rem; min-height:1rem;"></p>
       </div>
-      <div style="margin-top:3rem; padding-top:2rem; border-top:1px solid var(--border);">
-        <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:1.25rem; text-transform:uppercase; letter-spacing:0.08em; font-family:'JetBrains Mono',monospace;">Kommentare</p>
-        <script src="https://giscus.app/client.js"
-                data-repo="tswh0/promptlog"
-                data-repo-id="R_kgDORZpccA"
-                data-category="General"
-                data-category-id="DIC_kwDORZpccM4C3RW9"
-                data-mapping="pathname"
-                data-strict="0"
-                data-reactions-enabled="1"
-                data-emit-metadata="0"
-                data-input-position="top"
-                data-theme="https://blog.twh0.de/static/giscus.css"
-                data-lang="de"
-                data-loading="lazy"
-                crossorigin="anonymous"
-                async>
-        </script>
+      <div style="margin-top:3rem; padding-top:2rem; border-top:1px solid var(--border); width:100%;">
+        <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:1.5rem; text-transform:uppercase; letter-spacing:0.08em; font-family:'JetBrains Mono',monospace;">Kommentare</p>
+        <div class="giscus-wrapper" style="width:100%; min-width:0;">
+          <script src="https://giscus.app/client.js"
+                  data-repo="tswh0/promptlog"
+                  data-repo-id="R_kgDORZpccA"
+                  data-category="General"
+                  data-category-id="DIC_kwDORZpccM4C3RW9"
+                  data-mapping="pathname"
+                  data-strict="0"
+                  data-reactions-enabled="1"
+                  data-emit-metadata="0"
+                  data-input-position="top"
+                  data-theme="https://blog.twh0.de/static/giscus.css"
+                  data-lang="de"
+                  data-loading="lazy"
+                  crossorigin="anonymous"
+                  async>
+          </script>
+        </div>
       </div>
     </article>"""
     return base_html(
