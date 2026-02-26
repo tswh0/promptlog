@@ -111,6 +111,7 @@ def base_html(title, content, extra_head="", canonical="", description="", nonce
   <link rel="stylesheet" href="/static/tailwind.min.css">
   <link rel="stylesheet" href="/static/blog.css">
   {extra_head}
+  <script{nonce_attr}>(function(){{var t=localStorage.getItem('theme')||(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');if(t==='light')document.documentElement.setAttribute('data-theme','light');}})();</script>
 </head>
 <body>
   <!-- Header -->
@@ -125,6 +126,7 @@ def base_html(title, content, extra_head="", canonical="", description="", nonce
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19.01 7.38 20 6.18 20C4.98 20 4 19.01 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1z"/></svg>
           RSS
         </a>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Theme wechseln" title="Light/Dark Mode">🌙</button>
       </nav>
     </div>
   </header>
@@ -163,6 +165,35 @@ def base_html(title, content, extra_head="", canonical="", description="", nonce
       }});
       wrapper.appendChild(btn);
     }});
+
+    // ── Theme Toggle ──────────────────────────────────────────
+    (function() {{
+      var btn = document.getElementById('theme-toggle');
+      var html = document.documentElement;
+      var stored = localStorage.getItem('theme');
+      var theme = stored || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+
+      function applyTheme(t) {{
+        if (t === 'light') {{
+          html.setAttribute('data-theme', 'light');
+          btn.textContent = '☀️';
+          btn.title = 'Dark Mode';
+        }} else {{
+          html.removeAttribute('data-theme');
+          btn.textContent = '🌙';
+          btn.title = 'Light Mode';
+        }}
+      }}
+
+      applyTheme(theme);
+
+      btn.addEventListener('click', function() {{
+        var current = html.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+        var next = current === 'light' ? 'dark' : 'light';
+        localStorage.setItem('theme', next);
+        applyTheme(next);
+      }});
+    }})();
   </script>
 </body>
 </html>"""

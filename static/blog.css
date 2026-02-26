@@ -11,6 +11,49 @@
       --accent-hi: #818cf8;
       --accent-glow: rgba(99,102,241,0.15);
     }
+    [data-theme="light"] {
+      --bg:        #f8fafc;
+      --bg-card:   #ffffff;
+      --bg-raised: #f1f5f9;
+      --border:    #e2e8f0;
+      --border-hi: #cbd5e1;
+      --text:      #0f172a;
+      --text-muted:#94a3b8;
+      --text-dim:  #475569;
+      --accent:    #6366f1;
+      --accent-hi: #4f46e5;
+      --accent-glow: rgba(99,102,241,0.12);
+    }
+    [data-theme="light"] body {
+      background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(99,102,241,0.06) 0%, transparent 60%);
+    }
+    [data-theme="light"] .highlight,
+    [data-theme="light"] .prose code {
+      background: #f1f5f9;
+      color: #4f46e5;
+      border-color: var(--border);
+    }
+    [data-theme="light"] .highlight pre { color: #1e293b; }
+    [data-theme="light"] header {
+      background: rgba(248,250,252,0.85) !important;
+    }
+    /* Theme toggle button */
+    .theme-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.35rem 0.6rem;
+      font-size: 1rem;
+      line-height: 1;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .theme-toggle:hover {
+      border-color: var(--accent);
+      color: var(--accent-hi);
+      background: var(--accent-glow);
+    }
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
     body {
