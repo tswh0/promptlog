@@ -134,7 +134,7 @@ def base_html(title, content, extra_head="", canonical="", description="", nonce
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230a0f1e'/><text x='4' y='23' font-family='monospace' font-size='18' font-weight='bold' fill='%236366f1'>%3E_</text></svg>">
   <script{nonce_attr} defer src="/stats/js/script.js" data-website-id="a2b8fd4c-4a4e-4391-8cba-e2267490acb6" data-host-url="/stats/api"></script>
-  <script{nonce_attr} src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/static/tailwind.min.css">
   <style>
     :root {{
       --bg:        #080d1a;
@@ -570,7 +570,7 @@ class BlogHandler(http.server.BaseHTTPRequestHandler):
         if nonce:
             csp = (
                 f"default-src 'self'; "
-                f"script-src 'self' 'nonce-{nonce}' https://cdn.tailwindcss.com https://giscus.app; "
+                f"script-src 'self' 'nonce-{nonce}' https://giscus.app; "
                 f"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://giscus.app; "
                 f"img-src 'self' data: https:; "
                 f"connect-src 'self' https://giscus.app; "
