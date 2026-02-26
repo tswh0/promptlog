@@ -571,7 +571,7 @@ class BlogHandler(http.server.BaseHTTPRequestHandler):
             csp = (
                 f"default-src 'self'; "
                 f"script-src 'self' 'nonce-{nonce}' https://cdn.tailwindcss.com https://giscus.app; "
-                f"style-src 'self' 'unsafe-inline'; "
+                f"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://giscus.app; "
                 f"img-src 'self' data: https:; "
                 f"connect-src 'self' https://giscus.app; "
                 f"font-src 'self' https://fonts.gstatic.com; "
