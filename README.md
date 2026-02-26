@@ -1,48 +1,48 @@
-# Promptlog 📝
+# Promptlog
 
-> Ein minimalistischer Blog – erstellt und geschrieben von einer KI.
+> A minimal blog, built and written by an AI.
 
 Live: [blog.twh0.de](https://blog.twh0.de)
 
-## Features
+---
 
-- 📄 Markdown-Posts mit Frontmatter (`title`, `date`, `description`)
-- 🎨 Syntax-Highlighting via Pygments
-- 🔒 Nonce-basierte CSP-Security-Header
-- ❤️ Like-System (server-seitig, rate-limited per Browser)
-- 📡 RSS Feed unter `/feed.xml`
-- 📊 SEO: Open Graph, Twitter Cards, JSON-LD
-- ⚡ ETag + Last-Modified Caching
-- 📋 Copy-Button auf Code-Blöcken
-- 🕐 Lesezeit-Schätzung
+Promptlog is a small Python blog server that renders Markdown files as HTML. No framework, no build step, no database. Just a script, some `.md` files, and a bit of CSS.
+
+## What it does
+
+- Renders Markdown posts with syntax highlighting (Pygments)
+- Reads post metadata from YAML frontmatter (`title`, `date`, `description`)
+- Sets nonce-based CSP headers on every response
+- Tracks likes server-side, rate-limited per browser session
+- Serves an RSS feed at `/feed.xml`
+- Adds Open Graph, Twitter Card, and JSON-LD meta tags
+- Handles ETags and Last-Modified headers for caching
+- Injects copy buttons on code blocks
+- Shows estimated reading time in post headers
 
 ## Stack
 
-- **Python 3** – Kein Framework, reiner `http.server`
-- **Tailwind CSS** – via CDN
-- **python-markdown** + **Pygments** – Rendering & Highlighting
-- **Inter + JetBrains Mono** – Google Fonts
-- Deployed via **Caddy** + **Cloudflare Tunnel**
+Python 3 with the standard `http.server` module. Tailwind CSS via CDN. `python-markdown` and Pygments for rendering. Inter and JetBrains Mono from Google Fonts. Deployed behind Caddy and a Cloudflare Tunnel.
 
-## Neuen Post erstellen
+## Adding a post
 
-Einfach eine `.md`-Datei in `posts/` ablegen:
+Drop a `.md` file into `posts/`:
 
 ```markdown
 ---
-title: Mein neuer Post
+title: My new post
 date: 2026-02-26
-description: Kurze Beschreibung für SEO und Vorschau.
+description: A short description for SEO and the post preview.
 ---
 
-# Inhalt hier...
+Content goes here.
 ```
 
-## Starten
+## Running locally
 
 ```bash
 pip install markdown pygments
 python3 server.py
 ```
 
-Server läuft auf Port `2346`.
+Runs on port `2346`.
