@@ -105,20 +105,37 @@ def base_html(title, content, extra_head="", canonical="", description="", nonce
   {jsonld_tag}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="dns-prefetch" href="https://giscus.app">
+  <link rel="dns-prefetch" href="https://umami.ewlf.de">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230a0f1e'/><text x='4' y='23' font-family='monospace' font-size='18' font-weight='bold' fill='%236366f1'>%3E_</text></svg>">
   <script{nonce_attr} defer src="/stats/js/script.js" data-website-id="a2b8fd4c-4a4e-4391-8cba-e2267490acb6" data-host-url="/stats/api"></script>
+  <!-- Inline critical CSS -->
+  <style{nonce_attr}>
+    :root{{--bg:#080d1a;--bg-card:#0d1424;--border:#1e2d45;--text:#e2e8f0;--text-muted:#64748b;--text-dim:#94a3b8;--accent:#6366f1;--accent-hi:#818cf8}}
+    [data-theme="light"]{{--bg:#f8fafc;--bg-card:#fff;--border:#e2e8f0;--text:#0f172a;--text-muted:#94a3b8;--text-dim:#475569;--accent:#6366f1;--accent-hi:#4f46e5}}
+    *{{box-sizing:border-box}}html{{scroll-behavior:smooth}}body{{font-family:'Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text-dim);min-height:100vh;margin:0}}
+    .sticky{{position:sticky}}.top-0{{top:0}}.z-10{{z-index:10}}.max-w-3xl{{max-width:48rem}}.mx-auto{{margin-left:auto;margin-right:auto}}.px-5{{padding-left:1.25rem;padding-right:1.25rem}}.py-4{{padding-top:1rem;padding-bottom:1rem}}
+    header{{border-bottom:1px solid var(--border);background:rgba(8,13,26,0.85);backdrop-filter:blur(12px);min-height:64px}}
+    .flex{{display:flex}}.items-center{{align-items:center}}.justify-between{{justify-content:space-between}}.gap-2{{gap:0.5rem}}.font-bold{{font-weight:700}}.text-lg{{font-size:1.125rem}}
+    a{{color:var(--accent-hi);text-decoration:underline}}
+    /* Font fallback stacks to minimize CLS */
+    .font-mono{{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace}}
+  </style>
   <link rel="stylesheet" href="/static/tailwind.min.css">
-  <link rel="stylesheet" href="/static/blog.css">
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=optional" as="style" id="font-preload">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=optional"></noscript>
+  <link rel="stylesheet" href="/static/blog.css" media="print" id="blog-css">
+  <noscript><link rel="stylesheet" href="/static/blog.css"></noscript>
   {extra_head}
   <script{nonce_attr}>(function(){{var t=localStorage.getItem('theme')||(window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');if(t==='light')document.documentElement.setAttribute('data-theme','light');}})();</script>
+  <script{nonce_attr}>(function(){{var fontLink=document.getElementById('font-preload');if(fontLink){{fontLink.onload=function(){{this.onload=null;this.rel='stylesheet';}};fontLink.onerror=function(){{this.rel='stylesheet';}};}}var blogCss=document.getElementById('blog-css');if(blogCss){{blogCss.onload=function(){{this.onload=null;this.media='all';}};blogCss.onerror=function(){{this.media='all';}};}}}})();</script>
 </head>
 <body>
   <!-- Header -->
   <header style="border-bottom:1px solid var(--border); background:rgba(8,13,26,0.85); backdrop-filter:blur(12px);" class="sticky top-0 z-10">
     <div class="max-w-3xl mx-auto px-5 py-4 flex items-center justify-between">
       <a href="/" style="text-decoration:none; color:var(--text);" class="flex items-center gap-2 font-bold text-lg tracking-tight group">
-        <span style="font-family:'JetBrains Mono',monospace; color:var(--accent); transition:color 0.2s;" class="group-hover:text-violet-400">&gt;_</span>
+        <span style="font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace; color:var(--accent); transition:color 0.2s;" class="group-hover:text-violet-400">&gt;_</span>
         <span style="transition:color 0.2s;" class="group-hover:text-white">Promptlog</span>
       </a>
       <nav class="flex items-center gap-4">
@@ -139,11 +156,12 @@ def base_html(title, content, extra_head="", canonical="", description="", nonce
   <!-- Footer -->
   <footer style="border-top:1px solid var(--border); margin-top:5rem;">
     <div class="max-w-3xl mx-auto px-5 py-8 flex flex-col items-center gap-2">
-      <span style="font-family:'JetBrains Mono',monospace; color:var(--accent); font-size:1.1rem;">&gt;_</span>
+      <span style="font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace; color:var(--accent); font-size:1.1rem;">&gt;_</span>
       <p style="color:var(--text-muted); font-size:0.8rem;">twh0.de — Powered by nanobot 🐈</p>
     </div>
   </footer>
   <script{nonce_attr}>
+    // ── Copy Buttons für Code-Blöcke ─────────────────────────
     document.querySelectorAll('.highlight').forEach(function(block) {{
       var wrapper = document.createElement('div');
       wrapper.className = 'code-wrapper';
@@ -194,6 +212,15 @@ def base_html(title, content, extra_head="", canonical="", description="", nonce
         applyTheme(next);
       }});
     }})();
+
+    // ── Back Link Hover Effect ───────────────────────────────
+    (function() {{
+      var backLink = document.querySelector('.back-link');
+      if (backLink) {{
+        backLink.addEventListener('mouseenter', function() {{ this.style.color = '#a5b4fc'; }});
+        backLink.addEventListener('mouseleave', function() {{ this.style.color = 'var(--accent-hi)'; }});
+      }}
+    }})();
   </script>
 </body>
 </html>"""
@@ -225,7 +252,7 @@ def index_html(posts, nonce=""):
 
     content = f"""
     <div style="margin-bottom:3rem;">
-      <p style="font-family:'JetBrains Mono',monospace; color:var(--accent); font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.75rem;">Blog</p>
+      <p style="font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace; color:var(--accent); font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.75rem;">Blog</p>
       <h1 style="font-size:clamp(2.25rem,5vw,3rem); font-weight:800; line-height:1.15; margin-bottom:1rem; color:var(--text);">
         <span class="gradient-text">Promptlog</span>
       </h1>
@@ -266,8 +293,7 @@ def post_html(post, nonce=""):
     }, ensure_ascii=False)
     content = f"""
     <div style="margin-bottom:1.5rem;">
-      <a href="/" style="color:var(--accent-hi); font-size:0.875rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.3rem; transition:color 0.15s;"
-         onmouseover="this.style.color='#a5b4fc'" onmouseout="this.style.color='var(--accent-hi)'">
+      <a href="/" style="color:var(--accent-hi); font-size:0.875rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.3rem; transition:color 0.15s;" class="back-link">
         ← All articles
       </a>
     </div>
@@ -363,20 +389,22 @@ class BlogHandler(http.server.BaseHTTPRequestHandler):
         self.send_header("ETag", etag)
         self.send_header("Last-Modified", lm)
         self.send_header("Cache-Control", "no-cache")  # Revalidierung erzwingen
-        if nonce:
-            csp = (
-                f"default-src 'self'; "
-                f"script-src 'self' 'nonce-{nonce}' https://giscus.app; "
-                f"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://giscus.app; "
-                f"img-src 'self' data: https:; "
-                f"connect-src 'self' https://giscus.app; "
-                f"font-src 'self' https://fonts.gstatic.com; "
-                f"frame-src https://giscus.app; "
-                f"frame-ancestors 'none'; "
-                f"base-uri 'self'; "
-                f"form-action 'self';"
-            )
-            self.send_header("Content-Security-Policy", csp)
+        # Preload-Hinweise für bessere Performance
+        self.send_header("Link", '</static/tailwind.min.css>; rel=preload; as=style, </static/blog.css>; rel=preload; as=style')
+        # CSP immer senden
+        csp = (
+            f"default-src 'self'; "
+            f"script-src 'self' 'nonce-{nonce}' https://giscus.app; "
+            f"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://giscus.app; "
+            f"img-src 'self' data: https:; "
+            f"connect-src 'self' https://giscus.app; "
+            f"font-src 'self' https://fonts.gstatic.com; "
+            f"frame-src https://giscus.app; "
+            f"frame-ancestors 'none'; "
+            f"base-uri 'self'; "
+            f"form-action 'self';"
+        )
+        self.send_header("Content-Security-Policy", csp)
         self.end_headers()
         self.wfile.write(encoded)
 
@@ -394,6 +422,16 @@ class BlogHandler(http.server.BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "public, max-age=300")  # 5 Min. für statische Ressourcen
         self.end_headers()
         self.wfile.write(encoded)
+
+    def do_HEAD(self):
+        # HEAD unterstützt alle Pfade wie GET, aber ohne Body
+        # Wir speichern wfile und ersetzen es mit einem Dummy
+        original_wfile = self.wfile
+        self.wfile = type('DummyFile', (), {'write': lambda self, x: None})()
+        try:
+            self.do_GET()
+        finally:
+            self.wfile = original_wfile
 
     def do_GET(self):
         path = self.path.split("?")[0].rstrip("/") or "/"
@@ -425,7 +463,7 @@ class BlogHandler(http.server.BaseHTTPRequestHandler):
                 self.send_header("Content-Length", str(len(data)))
                 self.send_header("ETag", etag)
                 self.send_header("Last-Modified", lm)
-                self.send_header("Cache-Control", "public, max-age=86400")
+                self.send_header("Cache-Control", "public, max-age=31536000, immutable")  # 1 Jahr für statische Ressourcen
                 self.end_headers()
                 self.wfile.write(data)
             else:
